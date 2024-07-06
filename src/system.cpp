@@ -78,7 +78,9 @@ void onWifiDisconnect(const WiFiEventStationModeDisconnected& event) {
 
 void connectToWifi() {
   bool err=false;
-  DynamicJsonBuffer jsonBuffer;
+  //DynamicJsonBuffer jsonBuffer;
+  JsonDocument doc;
+  JsonObject json = doc.to<JsonObject>();
   File configFile;
 //    // Update mit neuer FW
 //    configFile = LittleFS.open("/config_wifi", "w+");
@@ -93,9 +95,10 @@ void connectToWifi() {
     return;
     ///err=true;
   }
-  JsonObject &json = jsonBuffer.parseObject(configFile);
+  //JsonObject &json = jsonBuffer.parseObject(configFile);
+  deserializeJson(json, configFile);
   configFile.close();
-  if(!json.success()) {
+  if(json.isNull()) {
     DBGOUT("[ WARN ] Failed to parse config_wifi\n");
     if (config.log_sys) writeEvent("ERROR", "wifi", "WiFi config error", "");
     err=true;
@@ -161,10 +164,14 @@ void generalInit() {
     writeEvent("ERROR", "Allgemein", "config fail", "");
     return;
   }
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &json = jsonBuffer.parseObject(configFile);
+  //DynamicJsonBuffer jsonBuffer;
+  //JsonObject &json = jsonBuffer.parseObject(configFile);
+  JsonDocument doc;
+  JsonObject json = doc.to<JsonObject>();
+
+  deserializeJson(json, configFile);
   configFile.close();
-  if(!json.success()) {
+  if(json.isNull()) {
     DBGOUT("[ WARN ] Failed to parse config_general\n");
     writeEvent("ERROR", "Allgemein", "config error", "");
     return;
@@ -229,8 +236,10 @@ void histInit () {
 
 void energieWeekUpdate() {             // Wochentabelle Energie an Webclient senden
   if (ws.count() && valid==5) {   // // ws-connections  && dow 1..7
-    DynamicJsonBuffer jsonBuffer;
-    JsonObject &root = jsonBuffer.createObject();
+    //DynamicJsonBuffer jsonBuffer;
+    //JsonObject &root = jsonBuffer.createObject();
+    JsonDocument doc;
+    JsonObject root = doc.to<JsonObject>();
     int x=dow-2;        // gestern
     if (x < 0) x=6;
     root[F("today_in")] =a_result[0];
@@ -239,16 +248,18 @@ void energieWeekUpdate() {             // Wochentabelle Energie an Webclient sen
     root[F("yestd_out")]=kwh_day_out[x];
     for (unsigned i=0; i < 7; i++) {
       if (kwh_hist[i].kwh_in != 0 || kwh_hist[i].kwh_out != 0) {
-        JsonArray& data = root.createNestedArray("data"+String(i));
+        //JsonArray data = root.createNestedArray("data"+String(i));
+        JsonArray data = root["data"+String(i)].to<JsonArray>();
         data.add(kwh_hist[i].dow);
         data.add(kwh_hist[i].kwh_in);
         data.add(kwh_hist[i].kwh_out);
       }
     }
-    size_t len = root.measureLength();
+    size_t len = measureJson(root);
     AsyncWebSocketMessageBuffer *buffer = ws.makeBuffer(len);
     if(buffer) {
-      root.printTo((char *)buffer->get(), len + 1);
+      //root.printTo((char *)buffer->get(), len + 1);
+      serializeJson(root,(char *)buffer->get(), len + 1);
       ws.textAll(buffer);
     }
   }
@@ -257,18 +268,23 @@ void energieWeekUpdate() {             // Wochentabelle Energie an Webclient sen
 void energieMonthUpdate() {             // Monatstabelle Energie an Webclient senden
   //if (ws.count() && valid==5) {   // // ws-connections  && dow 1..7
   if (ws.count() ) {   // // ws-connections  && dow 1..7
-    DynamicJsonBuffer jsonBuffer;
-    JsonObject &root = jsonBuffer.createObject();
-    JsonArray &items = root.createNestedArray("monthlist");       // Key name JS
+    //DynamicJsonBuffer jsonBuffer;
+    //JsonObject &root = jsonBuffer.createObject();
+    //JsonArray &items = root.createNestedArray("monthlist");       // Key name JS
+    JsonDocument doc;
+    JsonObject root = doc.to<JsonObject>();
+    JsonArray items = root["monthlist"].to<JsonArray>();
+
     File f = LittleFS.open("/monate", "r");
     while(f.available()) {
       items.add(f.readStringUntil('\n'));           // das ist Text, kein JSON-Obj!
     }
     f.close();
-    size_t len = root.measureLength();
+    size_t len = measureJson(root);
     AsyncWebSocketMessageBuffer *buffer = ws.makeBuffer(len);
     if(buffer) {
-      root.printTo((char *)buffer->get(), len + 1);
+      //root.printTo((char *)buffer->get(), len + 1);
+      serializeJson(root,(char *)buffer->get(), len + 1);
       ws.textAll(buffer);
     }
   }

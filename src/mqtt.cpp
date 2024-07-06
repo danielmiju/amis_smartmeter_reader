@@ -53,10 +53,11 @@ void connectToMqtt() {
     DBGOUT(F("[ WARN ] Failed to open config_mqtt\n"));
     return;
   }
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &json = jsonBuffer.parseObject(configFile);
+  //JsonDocument json;
+  JsonObject json;
+  deserializeJson(json, configFile);
   configFile.close();
-  if(!json.success()) {
+  if(json.isNull()) {
     DBGOUT(F("[ WARN ] Failed to parse config_mqtt\n"));
     return;
   }
@@ -67,16 +68,16 @@ void connectToMqtt() {
   config.mqtt_pub=json[F("mqtt_pub")].as<String>();
   config.mqtt_keep=json[F("mqtt_keep")].as<int>();
   if (json[F("mqtt_will")]!="") {
-    mqttClient.setWill(json[F("mqtt_will")].as<char*>(),config.mqtt_qos,config.mqtt_retain,config.DeviceName.c_str());
-    eprintf("MQTT SetWill: %s %u %u %s\n",json[F("mqtt_will")].as<char*>(),config.mqtt_qos,config.mqtt_retain,config.DeviceName.c_str());
+    mqttClient.setWill(json[F("mqtt_will")].as<const char*>(),config.mqtt_qos,config.mqtt_retain,config.DeviceName.c_str());
+    eprintf("MQTT SetWill: %s %u %u %s\n",json[F("mqtt_will")].as<const char*>(),config.mqtt_qos,config.mqtt_retain,config.DeviceName.c_str());
   }
   if (json[F("mqtt_user")]!="") {
-    mqttClient.setCredentials(json[F("mqtt_user")].as<char*>(),json[F("mqtt_password")].as<char*>());
-    eprintf("MQTT User: %s %s\n",json[F("mqtt_user")].as<char*>(),json[F("mqtt_password")].as<char*>());
+    mqttClient.setCredentials(json[F("mqtt_user")].as<const char*>(),json[F("mqtt_password")].as<const char*>());
+    eprintf("MQTT User: %s %s\n",json[F("mqtt_user")].as<const char*>(),json[F("mqtt_password")].as<const char*>());
   }
   if (json[F("mqtt_clientid")]!="") {
-    mqttClient.setClientId(json[F("mqtt_clientid")].as<char*>());
-    eprintf("MQTT ClientId: %s\n",json[F("mqtt_clientid")].as<char*>());
+    mqttClient.setClientId(json[F("mqtt_clientid")].as<const char*>());
+    eprintf("MQTT ClientId: %s\n",json[F("mqtt_clientid")].as<const char*>());
   }
   if (json[F("mqtt_enabled")]) {
     DBGOUT("MQTT connect\n");
@@ -130,8 +131,10 @@ void onMqttPublish(uint16_t packetId) {
 
 void mqtt_publish_state() {
   if (mqttClient.connected() && first_frame==1) {
-    DynamicJsonBuffer jsonBuffer;
-    JsonObject &root = jsonBuffer.createObject();
+    //DynamicJsonBuffer jsonBuffer;
+    //JsonObject &root = jsonBuffer.createObject();
+    JsonDocument doc;
+    JsonObject root = doc.to<JsonObject>();
     signed saldo= (a_result[4]-a_result[5]-config.rest_ofs);
     if (config.rest_neg) saldo =-saldo;
     if (config.rest_var==0) {
@@ -164,8 +167,9 @@ void mqtt_publish_state() {
     }
     String mqttBuffer;
     //root.prettyPrintTo(mqttBuffer);
-    root.printTo(mqttBuffer);
-    mqttClient.publish(config.mqtt_pub.c_str(),config.mqtt_qos,config.mqtt_retain,mqttBuffer.c_str());
+    //root.to(mqttBuffer);
+    size_t inin = serializeJson(root, mqttBuffer);
+    mqttClient.publish(config.mqtt_pub.c_str(),config.mqtt_qos,config.mqtt_retain,mqttBuffer.c_str(), inin);
     //DBGOUT("MQTT publish "+config.mqtt_pub+": "+mqttBuffer+"\n");
   }
   else DBGOUT("MQTT publish: not connected\n");
@@ -189,10 +193,12 @@ void mqtt_init() {
     writeEvent("ERROR", "mqtt", "MQTT config fail", "");
     return;
   }
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &json = jsonBuffer.parseObject(configFile);
+  //DynamicJsonBuffer jsonBuffer;
+  //JsonObject &json = jsonBuffer.parseObject(configFile);
+  JsonDocument doc;
+  JsonObject json = doc.to<JsonObject>();
   configFile.close();
-  if(!json.success()) {
+  if(json.isNull()) {
     DBGOUT(F("[ WARN ] Failed to parse config_mqtt\n"));
     writeEvent("ERROR", "mqtt", "MQTT config error", "");
     return;

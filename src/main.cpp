@@ -329,8 +329,10 @@ void secTick() {
 }
 
 void  writeEvent(String type, String src, String desc, String data) {
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &root = jsonBuffer.createObject();
+  JsonDocument jsonBuffer;
+  //JsonObject &root = jsonBuffer.createObject();
+  JsonObject root = jsonBuffer.to<JsonObject>();
+
   root[F("type")] = type;
   root[F("src")] = src;
   root[F("desc")] = desc;
@@ -342,7 +344,8 @@ void  writeEvent(String type, String src, String desc, String data) {
     LittleFS.remove("/eventlog.json");
     File eventlog = LittleFS.open("/eventlog.json", "a");
   }
-  root.printTo(eventlog);
+  //root.printTo(eventlog);
+  serializeJson(root,eventlog);
   eventlog.print("\n");
   eventlog.close();
 }
