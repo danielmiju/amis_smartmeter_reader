@@ -65,8 +65,9 @@ void  sendEventLog(uint32_t clientId,int page) {
   //JsonArray items;
   root["page"] = page;                                     // Key name JS
   //JsonArray &items = root.createNestedArray("list");       // Key name JS
-  JsonArray items = root["monthlist"].to<JsonArray>();
+  JsonArray items = root["list"].to<JsonArray>();
   File eventlog = LittleFS.open("/eventlog.json", "r");
+  
   int first = (page - 1) * 20;
   int last = page * 20;
   int i = 0;
@@ -129,6 +130,23 @@ void sendZData() {
     ws.textAll(buffer);
   }
 }
+
+void sendopendtudata(){
+  JsonDocument d;
+  JsonObject doc = d.to<JsonObject>();
+  doc["DTUProduction"] = opendtupower;
+  doc["DTUYieldDay"] = opendtuyieldday;
+
+  size_t len = measureJson(doc);
+  AsyncWebSocketMessageBuffer *buffer = ws.makeBuffer(len);
+  if(buffer) {
+    //doc.printTo((char *)buffer->get(), len + 1);
+    serializeJson(doc, (char *)buffer->get(), len + 1);
+    ws.textAll(buffer);
+  }
+
+}
+
 
 void printScanResult(int nFound) {
   JsonDocument doc, doc1;

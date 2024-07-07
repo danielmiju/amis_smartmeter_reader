@@ -50,7 +50,7 @@ void onWifiConnect(const WiFiEventStationModeGotIP& event) {
 #endif
   if (config.log_sys) writeEvent("INFO", "sys", "System setup completed, running", "");
   mqtt_init();
-
+  Serial.println("onWifiConnect");
 }
 
 void onWifiDisconnect(const WiFiEventStationModeDisconnected& event) {
@@ -197,6 +197,10 @@ void generalInit() {
   config.rest_var=json[F("rest_var")].as<int>();
   config.rest_ofs=json[F("rest_ofs")].as<int>();
   config.rest_neg=json[F("rest_neg")].as<bool>();
+
+  config.opendtu_aktiv=json[F("opendtu_aktiv")].as<bool>();
+  config.opendtu_ip=json[F("opendtu_ip")].as<String>();
+  
 }
 
 void histInit () {

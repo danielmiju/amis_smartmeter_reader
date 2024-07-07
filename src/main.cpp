@@ -68,7 +68,8 @@ void setup(){
   #endif // if LEDPIN == Serial1.txd: reroute pin function
   #if DEBUGHW==2
     #if DEBUG_OUTPUT==0
-      Serial.begin(115200);
+      Serial.begin(9600);
+      Serial.println("hans");
     #elif DEBUG_OUTPUT==1
       Serial1.begin(115200);
     #endif
@@ -96,6 +97,10 @@ void setup(){
   histInit();
   connectToWifi();  // and MQTT and NTP
   secTicker.attach_scheduled(1,secTick);
+  if(config.opendtu_aktiv){
+    startOpenDTUtimer();
+  }
+
   if (config.smart_mtr)  meter_init();
   if (config.log_sys) writeEvent("INFO", "sys", "System setup completed, running", "");
 }
@@ -144,6 +149,9 @@ void loop(){
     if (new_data3) {
       new_data3=false;
       sendZData();
+      if(config.opendtu_aktiv){
+        getOpenDTUpower();
+      }
     }
   }
   //if (WiFi.isConnected())
@@ -220,9 +228,13 @@ void secTick() {
   #ifdef LEDPIN
   if (things_cycle % 4==0) ledflag=true;
   #endif
+  Serial.println(config.opendtu_aktiv);
   if (ws.count()) {        // ws-connections
     if (first_frame==0) {
       sendZDataWait();
+      if(config.opendtu_aktiv){
+        sendopendtudata();
+      }
     }
   }
   if (valid==5){

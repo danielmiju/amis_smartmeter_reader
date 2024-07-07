@@ -60,7 +60,8 @@ struct strConfig {
   unsigned rest_var;
   signed rest_ofs;
   bool rest_neg;
-  bool OpenDTU_aktiv;
+  bool opendtu_aktiv;
+  String opendtu_ip;
 };
 struct kwhstruct {
   unsigned kwh_in;
@@ -92,7 +93,9 @@ extern void printStackSize(String txt);
 extern String lastMonth;
 extern AsyncServer* meter_server;
 extern WiFiClient net; //OpenDTU Integration
-extern String DTUresult; // OpenDTU Integration
+extern String opendtupower; //OpenDTU Integration
+extern String opendtuyieldday; //OpenDTU Integration
+extern Ticker opendtutimer; //OpenDTU Integration
 
 extern kwhstruct kwh_hist[7];
 extern void mqtt_publish_state();
@@ -124,6 +127,7 @@ extern void energieWeekUpdate();
 extern void energieMonthUpdate();
 extern void writeMonthFile(uint8_t y,uint8_t m);
 extern void meter_init();
-extern void livedata(); //OpenDTU Integration
-extern void sendDTUdata(); //OpenDTU Integration
+extern void getOpenDTUpower(); //OpenDTU Integration
+extern void sendopendtudata(); //OpenDTU Integration
+extern void startOpenDTUtimer(); //OpenDTU Integration
 #endif

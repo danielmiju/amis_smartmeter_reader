@@ -53,8 +53,8 @@ void connectToMqtt() {
     DBGOUT(F("[ WARN ] Failed to open config_mqtt\n"));
     return;
   }
-  //JsonDocument json;
-  JsonObject json;
+  JsonDocument doc;
+  JsonObject json = doc.to<JsonObject>();
   deserializeJson(json, configFile);
   configFile.close();
   if(json.isNull()) {
@@ -165,12 +165,12 @@ void mqtt_publish_state() {
       root[F("1_128_0")] = a_result[8];
       root[F("saldo")]=saldo;
     }
-    String mqttBuffer;
+    String mqttBuffer = "";
     //root.prettyPrintTo(mqttBuffer);
     //root.to(mqttBuffer);
     size_t inin = serializeJson(root, mqttBuffer);
-    mqttClient.publish(config.mqtt_pub.c_str(),config.mqtt_qos,config.mqtt_retain,mqttBuffer.c_str(), inin);
-    //DBGOUT("MQTT publish "+config.mqtt_pub+": "+mqttBuffer+"\n");
+    mqttClient.publish(config.mqtt_pub.c_str(),config.mqtt_qos,config.mqtt_retain,mqttBuffer.c_str());
+    DBGOUT("MQTT publish "+config.mqtt_pub+": "+mqttBuffer+"\n");
   }
   else DBGOUT("MQTT publish: not connected\n");
 }
@@ -197,7 +197,9 @@ void mqtt_init() {
   //JsonObject &json = jsonBuffer.parseObject(configFile);
   JsonDocument doc;
   JsonObject json = doc.to<JsonObject>();
+  deserializeJson(json,configFile);
   configFile.close();
+
   if(json.isNull()) {
     DBGOUT(F("[ WARN ] Failed to parse config_mqtt\n"));
     writeEvent("ERROR", "mqtt", "MQTT config error", "");
@@ -214,7 +216,7 @@ void mqtt_init() {
     IPAddress mqttIP;
     mqttIP.fromString(json[F("mqtt_broker")].as<String>());
     eprintf("MQTT init: %s %d\n",mqttIP.toString().c_str(),json["mqtt_port"].as<int>());
-    mqttClient.setServer(mqttIP,json[F("mqtt_port")]);
+    mqttClient.setServer(mqttIP,json[F("mqtt_port")].as<int>());
     mqttTimer.once_scheduled(15, connectToMqtt);
   }
 }
