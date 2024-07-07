@@ -150,7 +150,7 @@ void loop(){
       new_data3=false;
       sendZData();
       if(config.opendtu_aktiv){
-        getOpenDTUpower();
+        sendopendtudata();
       }
     }
   }

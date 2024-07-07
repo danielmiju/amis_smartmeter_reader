@@ -127,7 +127,7 @@ extern void energieWeekUpdate();
 extern void energieMonthUpdate();
 extern void writeMonthFile(uint8_t y,uint8_t m);
 extern void meter_init();
-extern void getOpenDTUpower(); //OpenDTU Integration
+extern void getOpenDTUdata(); //OpenDTU Integration
 extern void sendopendtudata(); //OpenDTU Integration
 extern void startOpenDTUtimer(); //OpenDTU Integration
 #endif

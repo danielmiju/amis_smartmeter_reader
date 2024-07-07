@@ -28,10 +28,10 @@ String opendtuyieldday = "";
 int httpResponseCodeSO;
 
 void startOpenDTUtimer(){
-    opendtutimer.attach_scheduled(5, getOpenDTUpower);
+    opendtutimer.attach_scheduled(5, getOpenDTUdata);
 }
 
-void getOpenDTUpower(){
+void getOpenDTUdata(){
     if(config.opendtu_aktiv){
         //String ip = config.opendtu_ip;
         String pre = "http://";
