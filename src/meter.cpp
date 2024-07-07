@@ -1,5 +1,5 @@
 #include "proj.h"
-#define DEBUG
+//#define DEBUG
 #ifndef DEBUG
   #define eprintf( fmt, args... )
   #define DBGOUT(...)

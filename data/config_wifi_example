@@ -1,0 +1,1 @@
+{"ssid": "WIFINAME","wifipassword": "SECURE_PASSWORD","dhcp": 0,"ip_static": "192.168.0.100","ip_netmask": "255.255.255.0","ip_gateway": "192.168.0.1","ip_nameserver": "192.168.0.1","rfpower":"","mdns": 0}

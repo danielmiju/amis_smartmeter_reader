@@ -162,8 +162,10 @@ void serverInit(unsigned mode) {
   server.on("/rest", HTTP_GET, [](AsyncWebServerRequest *request) {
     if (amisNotOnline==false && valid==5) {
       AsyncResponseStream *response = request->beginResponseStream(F("application/json;charset=UTF-8"));
-      DynamicJsonBuffer jsonBuffer;
-      JsonObject &root = jsonBuffer.createObject();
+      //DynamicJsonBuffer jsonBuffer;
+      //JsonObject &root = jsonBuffer.createObject();
+      JsonDocument doc;
+      JsonObject root = doc.to<JsonObject>();
       signed saldo= (a_result[4]-a_result[5]-config.rest_ofs);
       if (config.rest_neg) saldo =-saldo;
       if (config.rest_var==0) {
@@ -191,7 +193,8 @@ void serverInit(unsigned mode) {
         root[F("saldo")]=saldo;
       }
       //root.prettyPrintTo(*response);
-      root.printTo(*response);
+      //root.printTo(*response);
+      serializeJson(root, *response);
       request->send(response);
     }
   });

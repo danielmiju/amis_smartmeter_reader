@@ -60,11 +60,14 @@ void sendWeekData() {
 }
 
 void  sendEventLog(uint32_t clientId,int page) {
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &root = jsonBuffer.createObject();
+  JsonDocument doc;
+  JsonObject root = doc.to<JsonObject>();
+  //JsonArray items;
   root["page"] = page;                                     // Key name JS
-  JsonArray &items = root.createNestedArray("list");       // Key name JS
+  //JsonArray &items = root.createNestedArray("list");       // Key name JS
+  JsonArray items = root["list"].to<JsonArray>();
   File eventlog = LittleFS.open("/eventlog.json", "r");
+  
   int first = (page - 1) * 20;
   int last = page * 20;
   int i = 0;
@@ -80,27 +83,31 @@ void  sendEventLog(uint32_t clientId,int page) {
   float pages = i / 20.0;
   root["haspages"] = ceil(pages);
   String buffer;
-  root.prettyPrintTo(buffer);
+  //root.prettyPrintTo(buffer);
+  serializeJsonPretty(root,buffer);
   ws.text(clientId,buffer);
 }
 
 void sendZDataWait() {
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &doc = jsonBuffer.createObject();
+  JsonDocument d;
+  JsonObject doc = d.to<JsonObject>();;
   doc["now"] = valid;
   doc["uptime"] = millis()/1000;
 //  doc["things_up"] = things_up;
-  size_t len = doc.measureLength();
+  //size_t len = doc.measureLength();
+  size_t len = measureJson(doc);
   AsyncWebSocketMessageBuffer *buffer = ws.makeBuffer(len);
   if(buffer) {
-    doc.printTo((char *)buffer->get(), len + 1);
+    //doc.printTo((char *)buffer->get(), len + 1);
+    serializeJson(doc,(char*)buffer->get(), len + 1);
     ws.textAll(buffer);
   }
 }
 
 void sendZData() {
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &doc = jsonBuffer.createObject();
+  JsonDocument d;
+  JsonObject doc = d.to<JsonObject>();
+  
   doc["now"] = timecode;
   doc["1_8_0"] = a_result[0];
   doc["2_8_0"] = a_result[1];
@@ -114,30 +121,53 @@ void sendZData() {
   doc["uptime"] = millis()/1000;
   doc["things_up"] = things_up;
 
-  size_t len = doc.measureLength();
+  //size_t len = doc.measureLength();
+  size_t len = measureJson(doc);
   AsyncWebSocketMessageBuffer *buffer = ws.makeBuffer(len);
   if(buffer) {
-    doc.printTo((char *)buffer->get(), len + 1);
+    //doc.printTo((char *)buffer->get(), len + 1);
+    serializeJson(doc, (char *)buffer->get(), len + 1);
     ws.textAll(buffer);
   }
 }
 
+void sendopendtudata(){
+  JsonDocument d;
+  JsonObject doc = d.to<JsonObject>();
+  doc["DTUProduction"] = opendtupower;
+  doc["DTUYieldDay"] = opendtuyieldday;
+
+  size_t len = measureJson(doc);
+  AsyncWebSocketMessageBuffer *buffer = ws.makeBuffer(len);
+  if(buffer) {
+    //doc.printTo((char *)buffer->get(), len + 1);
+    serializeJson(doc, (char *)buffer->get(), len + 1);
+    ws.textAll(buffer);
+  }
+
+}
+
+
 void printScanResult(int nFound) {
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &root = jsonBuffer.createObject();
-  JsonArray &array = jsonBuffer.createArray();
+  JsonDocument doc, doc1;
+  JsonObject root = doc.to<JsonObject>();
+  JsonArray array = doc1.to<JsonArray>();
+
   String buffer;
   for (int i = 0; i < nFound; ++i) {           // esp_event_legacy.h
     buffer="";
     root[F("ssid")]    = WiFi.SSID(i);
+    //root[F("ssid")]    = WiFi.SSID(i);
     root[F("rssi")]    = WiFi.RSSI(i);
     root[F("channel")] = WiFi.channel(i);
     root[F("encrpt")]  = String(WiFi.encryptionType(i));     // 0...5
-    root.printTo(buffer);
+    //root.printTo(buffer);
+    serializeJson(root, buffer);
     array.add(buffer);
   }
   buffer="";
-  array.printTo(buffer);
+  //array.printTo(buffer);
+  serializeJson(array, buffer);
   buffer="{\"stations\":"+buffer+"}";
   ws.text(clientId,buffer);
   WiFi.scanDelete();
@@ -149,8 +179,8 @@ void  sendStatus(uint32_t clientId) {
   if(!LittleFS.info(fsinfo)) {
     DBGOUT(F("[ WARN ] Error getting info on LittleFS"));
   }
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &root = jsonBuffer.createObject();
+  JsonDocument doc;
+  JsonObject root = doc.to<JsonObject>();
   root[F("sdk")] = ESP.getSdkVersion();
   root[F("chipid")] = String(ESP.getChipId(), HEX);
   root[F("version")] = VERSION;
@@ -198,7 +228,8 @@ void  sendStatus(uint32_t clientId) {
   root[F("mqttStatus")] = mqttStatus ? "connected":"N/A";
   root[F("ntpSynced")] = "N/A";
   String buffer;
-  root.printTo(buffer);
+  //root.printTo(buffer);
+  serializeJson(root,buffer);
   ws.text(clientId,buffer);
 }
 
@@ -229,9 +260,10 @@ void clearHist() {
 }
 
 void  wsClientRequest(AsyncWebSocketClient *client, size_t sz) {
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &root = jsonBuffer.parseObject((char *)(client->_tempObject));
-  if(!root.success()) {
+  JsonDocument doc;
+  JsonObject root = doc.to<JsonObject>();
+  deserializeJson(root, (char *)(client->_tempObject));
+  if(root.isNull()) {
     DBGOUT(F("[ WARN ] Couldn't parse WebSocket message"));
     free(client->_tempObject);
     client->_tempObject = NULL;
@@ -283,8 +315,10 @@ void  wsClientRequest(AsyncWebSocketClient *client, size_t sz) {
   else if((strcmp(command, "/config_general")==0) || (strcmp(command, "/config_wifi")==0) || (strcmp(command, "/config_mqtt")==0)) {
     File f = LittleFS.open(command, "w+");
     if(f) {
-      size_t len = root.measurePrettyLength();
-      root.prettyPrintTo(f);
+      //size_t len = root.measurePrettyLength();
+      size_t len = measureJson(root);
+      //root.prettyPrintTo(f);
+      serializeJson(root, f);
       //root.prettyPrintTo(dbg_string);
       f.close();
       eprintf("[ INFO ] %s stored in the LittleFS (%u bytes)\n",command,len);
@@ -333,8 +367,8 @@ void  wsClientRequest(AsyncWebSocketClient *client, size_t sz) {
     LittleFS.remove("/monate");
   }
   else if(strcmp(command, "ls") == 0) {
-    DynamicJsonBuffer jsonBuffer;
-    JsonObject &doc = jsonBuffer.createObject();
+    JsonDocument docbuffer;
+    JsonObject doc = docbuffer.to<JsonObject>();
     Dir dir = LittleFS.openDir("/");
     unsigned i=0;
     while (dir.next()) {
@@ -345,7 +379,8 @@ void  wsClientRequest(AsyncWebSocketClient *client, size_t sz) {
     }
     doc["ls"]=i;
     String buffer;
-    doc.printTo(buffer);
+    //doc.printTo(buffer);
+    serializeJson(doc, buffer);
     //DBGOUT(buffer+"\n");
     ws.text(clientId,buffer);
   }

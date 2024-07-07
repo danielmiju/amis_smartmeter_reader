@@ -33,6 +33,8 @@ var config_general = {
     "rest_ofs":0,
     "rest_neg":false,
     "smart_mtr":false,
+    "opendtu_aktiv" : false,
+    "opendtu_ip" : "",
     "command" :"/config_general"
 };
 
@@ -251,6 +253,12 @@ function updateElements(obj) {
     else if (key==='things_up') {
        if (value) value=timeDecoder(value);
        else value="";
+    }
+    else if (key ==='DTUProduction'){     // OpenDTU
+      $("#DTU_Production_id").html(value +' W');
+    }
+    else if (key ==='DTUYieldDay'){     // OpenDTU
+      $("#DTU_YieldDay_id").html(value +' Wh');
     }
     else if (key==='page') {             // Logpanel
       logpagenr=obj["haspages"];
@@ -507,6 +515,7 @@ function showPanel() {              // menu click select panel
   if ($(this).attr('data')=='panel-general') {
     if ($('#use_auth').prop('checked') == false) $(".auth_details").hide();
     if ($('#thingspeak_aktiv').prop('checked') == false) $(".things_details").hide();
+    if ($('#opendtu_aktiv').prop('checked') == false) $(".opendtu_details").hide();
   }
   else if ($(this).attr('data')=='panel-mqtt') {
     if ($('#mqtt_enabled').prop('checked') == false) $(".mqtt_details").hide();
@@ -557,6 +566,7 @@ function doUpdateGeneral() {                 // button save config
   websock.send(JSON.stringify(config_general));
   if (boot) doReboot("Wenn die Authentifizierung ein- oder ausgeschaltet wurde, muss neu gebootet werden.\n")
 }
+
 function doUpdateWiFi() {
   progressAnimate('prgbar_wifi',300);
   $(".wifi").each(function () {
@@ -570,6 +580,7 @@ function doUpdateWiFi() {
   })
   websock.send(JSON.stringify(config_wifi));
 }
+
 function doUpdateMQTT() {
   progressAnimate('prgbar_mqtt',300);
   $(".mqtt").each(function () {
@@ -647,6 +658,11 @@ function wifiDetails() {  // display settings only if dhcp active
 function thingsDetails() {  // display settings only if thingspeak active
   if ($(this).prop('checked')) $(".things_details").show();
   else $(".things_details").hide();
+}
+
+function opendtuDetails() {  // display settings only if OpenDTU active
+  if ($(this).prop('checked')) $(".opendtu_details").show();
+  else $(".opendtu_details").hide();
 }
 
 function authDetails() {  // display settings only if auth active
@@ -848,6 +864,7 @@ $(function() {            // main
   $("input[name='mqtt_enabled']").on("click", mqttDetails);
   $("input[name='dhcp']").on("click", wifiDetails);
   $("input[name='thingspeak_aktiv']").on("click", thingsDetails);
+  $("input[name='opendtu_aktiv']").on("click", opendtuDetails);
   //$("input[name='smart_aktiv']").on("click", smart_mtr);
   $("input[name='use_auth']").on("click", authDetails);
   $(".button-upgrade").on("click", doUpgrade);      // firmware update

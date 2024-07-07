@@ -7,6 +7,7 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <AsyncMqttClient.h>
+#include <ESP8266HTTPClient.h> //OpenDTU
 #include <AsyncJson.h> //needs to be declared AFTER #include <ESPAsyncWebServer.h>
 #include <Ticker.h>
 #include "flash_hal.h"
@@ -25,7 +26,7 @@
 #define AP_PIN 14
 //#define OTA
 //#define STROMPREIS
-#define VERSION "1.2.8"
+#define VERSION "1.2.9"
 #define APP_NAME "Amis"
   extern String dbg_string;
   extern char dbg[128];
@@ -59,6 +60,8 @@ struct strConfig {
   unsigned rest_var;
   signed rest_ofs;
   bool rest_neg;
+  bool opendtu_aktiv;
+  String opendtu_ip;
 };
 struct kwhstruct {
   unsigned kwh_in;
@@ -89,6 +92,10 @@ extern char *stack_start;
 extern void printStackSize(String txt);
 extern String lastMonth;
 extern AsyncServer* meter_server;
+extern WiFiClient net; //OpenDTU Integration
+extern String opendtupower; //OpenDTU Integration
+extern String opendtuyieldday; //OpenDTU Integration
+extern Ticker opendtutimer; //OpenDTU Integration
 
 extern kwhstruct kwh_hist[7];
 extern void mqtt_publish_state();
@@ -107,17 +114,20 @@ extern void mqtt_init();
 extern Ticker uniTicker,secTicker;
 extern bool inAPMode,mqttStatus,hwTest;
 extern void generalInit();
-extern String  printIP(IPAddress adress);
+extern String printIP(IPAddress adress);
 extern void sendZData();
 extern void sendZDataWait();
 extern void writeEvent(String type, String src, String desc, String data);
 extern void sendEventLog(uint32_t clientId,int page);
 extern void amis_poll();
-extern void  histInit();
+extern void histInit();
 extern void upgrade (bool save);
 extern void postUpgrade ();
 extern void energieWeekUpdate();
 extern void energieMonthUpdate();
 extern void writeMonthFile(uint8_t y,uint8_t m);
 extern void meter_init();
+extern void getOpenDTUdata(); //OpenDTU Integration
+extern void sendopendtudata(); //OpenDTU Integration
+extern void startOpenDTUtimer(); //OpenDTU Integration
 #endif

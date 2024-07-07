@@ -149,8 +149,8 @@ void upgrade (bool save) {
 	}
 	else ConfigureWifi(0);
 	if (save) {
-    DynamicJsonBuffer jsonBuffer;
-    JsonObject &root = jsonBuffer.createObject();
+    JsonDocument doc;
+    JsonObject root = doc.to<JsonObject>();
     root["dhcp"] = config2.dhcp;
     root["ip_gateway"]=String(config2.Gateway[0])+"."+String(config2.Gateway[1])+"."+String(config2.Gateway[2])+"."+String(config2.Gateway[3]);
     root["ip_nameserver"]=String(config2.Nameserver[0])+"."+String(config2.Nameserver[1])+"."+String(config2.Nameserver[2])+"."+String(config2.Nameserver[3]);
@@ -162,7 +162,8 @@ void upgrade (bool save) {
     root["command"]="/config_wifi";
     File f = LittleFS.open("/config_wifi", "w+");
     if(f) {
-      root.prettyPrintTo(f);
+      //root.prettyPrintTo(f);
+      serializeJsonPretty(root,f);
       f.close();
       writeEvent("INFO", "upgrade", "WiFi settings created form EEPROM", "");
       #if DEBUGHW==2
