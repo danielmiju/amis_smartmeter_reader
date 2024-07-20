@@ -6,3 +6,4 @@
 data/config_wifi
 data/config_wifi_iot
 data/config_wifi_mi
+*.code-workspace
