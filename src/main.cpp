@@ -63,8 +63,8 @@ void setup(){
   Serial.setTimeout(10);              // f. readBytes in amis.cpp
   pinMode(AP_PIN,INPUT_PULLUP);
   #if LEDPIN
-  digitalWrite(LEDPIN,HIGH);
-  pinMode(LEDPIN, OUTPUT);
+    digitalWrite(LEDPIN,HIGH);
+    pinMode(LEDPIN, OUTPUT);
   #endif // if LEDPIN == Serial1.txd: reroute pin function
   #if DEBUGHW==2
     #if DEBUG_OUTPUT==0
@@ -75,7 +75,7 @@ void setup(){
     #endif
   #endif // DEBUGHW
   #ifdef OTA
-  initOTA();
+    initOTA();
   #endif // OTA
   LittleFS.begin();                 // always true! SPIFF.begin does autoformat!!!
   bool test=false;
@@ -128,7 +128,7 @@ void loop(){
   #endif
 
   #ifdef OTA
-  ArduinoOTA.handle();
+    ArduinoOTA.handle();
   #endif
   if(shouldReboot){
     secTicker.detach();
