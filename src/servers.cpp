@@ -244,9 +244,10 @@ void initOTA(){
     ws.closeAll();
     uniTicker.detach();
     secTicker.detach();
+    opendtutimer.detach();
     #ifdef MQTT
-    mqttClient.disconnect(true);
-    mqttAliveTicker.detach();
+      mqttClient.disconnect(true);
+      mqttTimer.detach();
     #endif // MQTT
   });
 //    ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
@@ -254,12 +255,12 @@ void initOTA(){
 //    });
   ArduinoOTA.onError([](ota_error_t error) {
     #ifdef DEBUG
-    eprintf("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) DBGOUT("Auth Failed\n");
-    else if (error == OTA_BEGIN_ERROR) DBGOUT("Begin Failed\n");
-    else if (error == OTA_CONNECT_ERROR) DBGOUT("Connect Failed\n");
-    else if (error == OTA_RECEIVE_ERROR) DBGOUT("Receive Failed\n");
-    else if (error == OTA_END_ERROR) DBGOUT("End Failed\n");
+      eprintf("Error[%u]: ", error);
+      if (error == OTA_AUTH_ERROR) DBGOUT("Auth Failed\n");
+      else if (error == OTA_BEGIN_ERROR) DBGOUT("Begin Failed\n");
+      else if (error == OTA_CONNECT_ERROR) DBGOUT("Connect Failed\n");
+      else if (error == OTA_RECEIVE_ERROR) DBGOUT("Receive Failed\n");
+      else if (error == OTA_END_ERROR) DBGOUT("End Failed\n");
     #endif
     shouldReboot=true;
   });
