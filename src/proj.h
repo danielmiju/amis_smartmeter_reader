@@ -25,6 +25,7 @@
 #define LEDPIN 2          // LED via 470 to VCC
 #define AP_PIN 14
 //#define OTA
+#define MQTT
 //#define STROMPREIS
 #define VERSION "1.2.9"
 #define APP_NAME "Amis"
